@@ -1,0 +1,42 @@
+# 复制本文件为 config.yml 并填入真实值，config.yml 已被 .gitignore 忽略
+mysql:
+  user: root
+  password: your_password
+  host: 127.0.0.1
+  port: 3306
+  name: ginchat
+  max_con: 100
+
+redis:
+  addr: "127.0.0.1:6379"
+  password: ""
+  DB: 0
+  poolSize: 30
+  minIdleConn: 30
+
+oss:
+  Endpoint: "xxxxxxxxxxxxxxxxxxxx"
+  AccessKeyId: "xxxxxxxxxxxxxxx"
+  AccessKeySecret: "xxxxxxxxxxxxxxxxx"
+  Bucket: "ginchat"
+
+timeout:
+  DelayHeartbeat: 3      # 延迟心跳时间 单位秒
+  HeartbeatHz: 30        # 每隔多少秒心跳
+  HeartbeatMaxTime: 30000 # 最大心跳时间，超过就下线
+  RedisOnlineTime: 4     # 缓存的在线用户时长 单位H
+
+port:
+  server: ":8080"
+  udp: 3001
+
+log:
+  output: "both"        # stdout(终端) / file(文件) / both
+  file: "./log/app.log"
+  format_json: True
+
+jwt:
+  accessKey: "your_access_secret"
+  refreshKey: "your_refresh_secret"
+  accessExpire: 3600
+  refreshExpire: 86400

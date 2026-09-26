@@ -1,0 +1,94 @@
+basePath: /
+definitions:
+  api.LoginRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  api.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  utils.Response:
+    properties:
+      code:
+        description: 业务码，0 表示成功
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 即时通讯服务接口文档
+  title: GinIM API
+  version: "1.0"
+paths:
+  /index:
+    get:
+      description: 欢迎页
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 首页
+      tags:
+      - 首页
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 手机号 + 密码登录
+      parameters:
+      - description: 登录参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 用户登录
+      tags:
+      - 用户
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 通过手机号注册新用户
+      parameters:
+      - description: 注册参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 用户注册
+      tags:
+      - 用户
+swagger: "2.0"
