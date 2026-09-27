@@ -9,8 +9,6 @@ definitions:
     type: object
   api.RegisterRequest:
     properties:
-      email:
-        type: string
       name:
         type: string
       password:
@@ -34,6 +32,18 @@ info:
   title: GinIM API
   version: "1.0"
 paths:
+  /getuser:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取用户列表
+      tags:
+      - 用户
   /index:
     get:
       description: 欢迎页

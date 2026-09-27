@@ -24,9 +24,8 @@ func Router() *gin.Engine {
 	r.GET("/index", api.Index)
 	r.GET("/getuser", api.GetUser)
 
-	// 用户
+	// 用户（注册/登录为公开接口，无需鉴权）
 	user := r.Group("/user")
-	user.User(middleware.adminGroup)
 	{
 		user.POST("/register", api.Register)
 		user.POST("/login", api.Login)

@@ -2,8 +2,8 @@ package utils
 
 import (
 	"errors"
+
 	"ginchat/config"
-	"net"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -32,33 +32,6 @@ func GetAccessToken(c *gin.Context) string {
 	token := c.GetHeader("x-access-token")
 
 	return token
-}
-
-func GetRefreshToken(c *gin.Context) string {
-	refreshToken := c.GetHeader("x-refresh-token")
-	return refreshToken
-}
-
-// ClearRefreshToken 清除Refresh Token的cookie
-func ClearRefreshToken(c *gin.Context) {
-	// 获取请求的host，如果失败则取原始请求host
-	host, _, err := net.SplitHostPort(c.Request.Host)
-	if err != nil {
-		host = c.Request.Host
-	}
-	// 调用setCookie设置cookie值为空并过期，删除refresh-token
-	setCookie(c, "x-refresh-token", "", -1, host)
-}
-
-func setCookie(c *gin.Context, name, value string, maxAge int, host string) {
-	// 判断host是否是IP地址
-	if net.ParseIP(host) != nil {
-		// 如果是IP地址，设置cookie的domain为“/”
-		c.SetCookie(name, value, maxAge, "/", "", false, true)
-	} else {
-		// 如果是域名，设置cookie的domain为域名
-		c.SetCookie(name, value, maxAge, "/", host, false, true)
-	}
 }
 
 func (j *JWT) CreateAccessToken(claims *Claims) (string, error) {

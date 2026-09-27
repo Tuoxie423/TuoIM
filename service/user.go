@@ -21,19 +21,31 @@ func (s *UserService) GetUser() ([]*models.UserBasic, error) {
 }
 
 // Register 用户注册
-func (s *UserService) Register(name, password, phone, email string) (*models.UserBasic, error) {
+func (s *UserService) Register(name, password, phone string) (*models.UserBasic, error) {
 	if name == "" || password == "" {
 		return nil, errors.New("用户名和密码不能为空")
 	}
+	if phone == "" {
+		return nil, errors.New("手机号不能为空")
+	}
 
-	// 简单加盐加密；生产环境建议用 bcrypt 或 scrypt
-	salt := utils.MD5(phone + email)
+	// 手机号查重（生产环境建议配合数据库唯一索引做双保险）
+	var count int64
+	if err := config.Global.DB.Model(&models.UserBasic{}).Where("phone = ?", phone).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, errors.New("该手机号已注册")
+	}
+
+	hash, err := utils.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
 	user := models.UserBasic{
 		Name:     name,
-		PassWord: utils.MD5(password + salt),
+		PassWord: hash,
 		Phone:    phone,
-		Email:    email,
-		Salt:     salt,
 	}
 	if err := config.Global.DB.Create(&user).Error; err != nil {
 		return nil, err
@@ -47,7 +59,7 @@ func (s *UserService) Login(phone, password string) (*models.UserBasic, error) {
 	if err := config.Global.DB.Where("phone = ?", phone).First(&user).Error; err != nil {
 		return nil, errors.New("用户不存在")
 	}
-	if utils.MD5(password+user.Salt) != user.PassWord {
+	if !utils.CheckPasswordHash(password, user.PassWord) {
 		return nil, errors.New("密码错误")
 	}
 	return &user, nil

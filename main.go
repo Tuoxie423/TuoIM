@@ -21,8 +21,6 @@ func main() {
 	initial.InitLogger()
 
 	r := router.Router()
-	// 启动 websocket 连接中心（必须跑在 goroutine 里）
-	// go ws.DefaultHub.Run()
 	r.Run(config.Global.Port.Server)
 	initial.Logger.Close()
 }
