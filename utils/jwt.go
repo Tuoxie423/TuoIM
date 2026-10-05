@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"strings"
 
 	"ginchat/config"
 
@@ -10,8 +11,7 @@ import (
 )
 
 type JWT struct {
-	AccessTokenSecret  []byte
-	RefreshTokenSecret []byte
+	AccessTokenSecret []byte
 }
 
 var (
@@ -23,15 +23,19 @@ var (
 
 func NewJWT() *JWT {
 	return &JWT{
-		AccessTokenSecret:  []byte(config.Global.Jwt.AccessTokenSecret),
-		RefreshTokenSecret: []byte(config.Global.Jwt.RefreshTokenSecret),
+		AccessTokenSecret: []byte(config.Global.Jwt.AccessTokenSecret),
 	}
 }
 
+// GetAccessToken 从 Authorization 头读取并解析 Bearer token
 func GetAccessToken(c *gin.Context) string {
-	token := c.GetHeader("x-access-token")
-
-	return token
+	auth := c.GetHeader("Authorization")
+	// 格式：Bearer <token>
+	parts := strings.SplitN(auth, " ", 2)
+	if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+		return parts[1]
+	}
+	return ""
 }
 
 func (j *JWT) CreateAccessToken(claims *Claims) (string, error) {
@@ -39,19 +43,9 @@ func (j *JWT) CreateAccessToken(claims *Claims) (string, error) {
 	return token.SignedString(j.AccessTokenSecret)
 }
 
-func (j *JWT) CreateRefreshToken(claims *Claims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(j.RefreshTokenSecret)
-}
-
 // ParseAccessToken 解析并校验 access token
 func (j *JWT) ParseAccessToken(tokenString string) (*Claims, error) {
 	return j.parseToken(tokenString, j.AccessTokenSecret)
-}
-
-// ParseRefreshToken 解析并校验 refresh token
-func (j *JWT) ParseRefreshToken(tokenString string) (*Claims, error) {
-	return j.parseToken(tokenString, j.RefreshTokenSecret)
 }
 
 // parseToken 通用解析逻辑：验签 + 校验 claims，并把 jwt 错误映射成项目自己的错误

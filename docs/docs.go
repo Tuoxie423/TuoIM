@@ -15,25 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/getuser": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户"
-                ],
-                "summary": "获取用户列表",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utils.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/index": {
             "get": {
                 "description": "欢迎页",
@@ -54,7 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/login": {
+        "/login": {
             "post": {
                 "description": "手机号 + 密码登录",
                 "consumes": [
@@ -88,7 +69,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/register": {
+        "/register": {
             "post": {
                 "description": "通过手机号注册新用户",
                 "consumes": [
@@ -110,6 +91,35 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/api.RegisterRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "description": "通过 token 解析出 userID 并返回用户信息",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "获取当前登录用户信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -169,7 +179,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "GinIM API",
 	Description:      "即时通讯服务接口文档",

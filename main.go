@@ -12,7 +12,7 @@ import (
 // @version         1.0
 // @description     即时通讯服务接口文档
 // @host            localhost:8080
-// @BasePath        /
+// @BasePath        /api
 
 func main() {
 	config.LoadConfig()

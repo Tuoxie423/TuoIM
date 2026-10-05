@@ -37,6 +37,4 @@ log:
 
 jwt:
   accessKey: "your_access_secret"
-  refreshKey: "your_refresh_secret"
   accessExpire: 3600
-  refreshExpire: 86400

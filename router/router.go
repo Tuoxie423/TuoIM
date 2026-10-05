@@ -12,23 +12,36 @@ import (
 
 func Router() *gin.Engine {
 	r := gin.New()
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	r.Use(initial.Logger.Logger()) // 使用自定义日志中间件
 	r.Use(gin.Recovery())
 	r.Use(middleware.CORS())
-
-	// swagger 文档
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
-	// 首页
-	r.GET("/index", api.Index)
-	r.GET("/getuser", api.GetUser)
-
-	// 用户（注册/登录为公开接口，无需鉴权）
-	user := r.Group("/user")
+	// 公开接口
+	publicGroup := r.Group("/api")
 	{
-		user.POST("/register", api.Register)
-		user.POST("/login", api.Login)
+		// swagger 文档
+		publicGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+		// 首页
+		publicGroup.GET("/index", api.Index)
+
+		// 认证
+		publicGroup.POST("/login", api.Login)
+		publicGroup.POST("/register", api.Register)
+	}
+
+	// 受保护接口（需要 JWT）
+	users := publicGroup.Group("/users")
+	users.Use(middleware.JWTAuth())
+	{
+		users.GET("/info", api.GetUserInfo)
+	}
+
+	// 消息（受保护）
+	chat := publicGroup.Group("/chat")
+	chat.Use(middleware.JWTAuth())
+	{
+		chat.POST("/send", api.SendMessage)
 	}
 
 	return r

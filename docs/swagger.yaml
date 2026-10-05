@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api
 definitions:
   api.LoginRequest:
     properties:
@@ -32,18 +32,6 @@ info:
   title: GinIM API
   version: "1.0"
 paths:
-  /getuser:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.Response'
-      summary: 获取用户列表
-      tags:
-      - 用户
   /index:
     get:
       description: 欢迎页
@@ -57,7 +45,7 @@ paths:
       summary: 首页
       tags:
       - 首页
-  /user/login:
+  /login:
     post:
       consumes:
       - application/json
@@ -79,7 +67,7 @@ paths:
       summary: 用户登录
       tags:
       - 用户
-  /user/register:
+  /register:
     post:
       consumes:
       - application/json
@@ -99,6 +87,25 @@ paths:
           schema:
             $ref: '#/definitions/utils.Response'
       summary: 用户注册
+      tags:
+      - 用户
+  /users/me:
+    get:
+      description: 通过 token 解析出 userID 并返回用户信息
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取当前登录用户信息
       tags:
       - 用户
 swagger: "2.0"

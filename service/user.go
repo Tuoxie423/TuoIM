@@ -11,15 +11,6 @@ import (
 // UserService 用户业务逻辑
 type UserService struct{}
 
-func (s *UserService) GetUser() ([]*models.UserBasic, error) {
-	var users []*models.UserBasic
-	if err := config.Global.DB.Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
-
-}
-
 // Register 用户注册
 func (s *UserService) Register(name, password, phone string) (*models.UserBasic, error) {
 	if name == "" || password == "" {
@@ -61,6 +52,15 @@ func (s *UserService) Login(phone, password string) (*models.UserBasic, error) {
 	}
 	if !utils.CheckPasswordHash(password, user.PassWord) {
 		return nil, errors.New("密码错误")
+	}
+	return &user, nil
+}
+
+// GetUserByID 按 ID 查询用户
+func (s *UserService) GetUserByID(id int64) (*models.UserBasic, error) {
+	var user models.UserBasic
+	if err := config.Global.DB.First(&user, id).Error; err != nil {
+		return nil, err
 	}
 	return &user, nil
 }

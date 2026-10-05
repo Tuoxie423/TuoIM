@@ -61,10 +61,8 @@ type Log struct {
 
 // Jwt JWT配置
 type Jwt struct {
-	AccessTokenSecret  string `mapstructure:"accessKey"`
-	RefreshTokenSecret string `mapstructure:"refreshKey"`
-	AccessExpireTime   int    `mapstructure:"accessExpire"`
-	RefreshExpireTime  int    `mapstructure:"refreshExpire"`
+	AccessTokenSecret string `mapstructure:"accessKey"`
+	AccessExpireTime  int    `mapstructure:"accessExpire"`
 }
 
 // AppConfig 总配置

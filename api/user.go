@@ -22,21 +22,6 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-// GetUser godoc
-// @Summary      获取用户列表
-// @Tags         用户
-// @Produce      json
-// @Success      200 {object} utils.Response
-// @Router       /getuser [get]
-func GetUser(c *gin.Context) {
-	data, err := userService.GetUser()
-	if err != nil {
-		utils.Error(c, 500, err.Error())
-		return
-	}
-	utils.Success(c, data)
-}
-
 // Register godoc
 // @Summary      用户注册
 // @Description  通过手机号注册新用户
@@ -45,7 +30,7 @@ func GetUser(c *gin.Context) {
 // @Produce      json
 // @Param        body body RegisterRequest true "注册参数"
 // @Success      200 {object} utils.Response
-// @Router       /user/register [post]
+// @Router       /register [post]
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -68,7 +53,7 @@ func Register(c *gin.Context) {
 // @Produce      json
 // @Param        body body LoginRequest true "登录参数"
 // @Success      200 {object} utils.Response
-// @Router       /user/login [post]
+// @Router       /login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -88,4 +73,34 @@ func Login(c *gin.Context) {
 		return
 	}
 	utils.Success(c, gin.H{"token": token, "user": user})
+}
+
+// GetUserInfo godoc
+// @Summary      获取当前登录用户信息
+// @Description  通过 token 解析出 userID 并返回用户信息
+// @Tags         用户
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Success      200 {object} utils.Response
+// @Router       /users/me [get]
+func GetUserInfo(c *gin.Context) {
+	// 从 context 取出中间件存的 claims
+	claimsAny, ok := c.Get("claims")
+	if !ok {
+		utils.Error(c, utils.CodeUnauthorized, "未登录")
+		return
+	}
+	userClaims, ok := claimsAny.(*utils.Claims)
+	if !ok {
+		utils.Error(c, 500, "凭证解析失败")
+		return
+	}
+
+	// 用 claims 里的 userID 查完整用户信息
+	user, err := userService.GetUserByID(userClaims.UserID)
+	if err != nil {
+		utils.Error(c, 500, err.Error())
+		return
+	}
+	utils.Success(c, user)
 }
