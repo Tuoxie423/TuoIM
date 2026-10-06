@@ -35,6 +35,20 @@ func Router() *gin.Engine {
 	users.Use(middleware.JWTAuth())
 	{
 		users.GET("/info", api.GetUserInfo)
+		users.GET("/search", api.SearchUser)
+	}
+
+	// 好友（受保护）
+	friend := publicGroup.Group("/friend")
+	friend.Use(middleware.JWTAuth())
+	{
+		friend.POST("/apply", api.ApplyFriend)
+		friend.POST("/agree", api.AgreeFriend)
+		friend.POST("/reject", api.RejectFriend)
+		friend.DELETE("/delete", api.DeleteFriend)
+		friend.GET("/applyList", api.GetApplyList)
+		friend.GET("/list", api.GetFriendList)
+		friend.GET("/unreadNum", api.UnreadApplyNum)
 	}
 
 	// 消息（受保护）

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"ginchat/cache"
 	"ginchat/config"
 	"ginchat/models"
 
@@ -13,13 +14,20 @@ import (
 // MessageService 消息业务逻辑
 type MessageService struct{}
 
-// SendMsg 发送单聊消息：先找到（或创建）单聊房间，再落库
+// SendMsg 发送单聊消息：校验好友 → 找到/创建房间 → 落库
 func (s *MessageService) SendMsg(fromUserID, toUserID int64, content string, msgType int) (*models.Message, error) {
+	// ① 校验双向好友关系（先查 Redis，miss 回查 MySQL）
+	if !s.isMutualFriend(fromUserID, toUserID) {
+		return nil, errors.New("对方不是你的好友")
+	}
+
+	// ② 找到/创建单聊房间
 	roomID, err := s.getOrCreateFriendRoom(fromUserID, toUserID)
 	if err != nil {
 		return nil, err
 	}
 
+	// ③ 落库
 	msg := models.Message{
 		RoomID:     roomID,
 		FromUserID: fromUserID,
@@ -30,6 +38,25 @@ func (s *MessageService) SendMsg(fromUserID, toUserID int64, content string, msg
 		return nil, err
 	}
 	return &msg, nil
+}
+
+// isMutualFriend 双向好友校验（Redis 缓存 + MySQL 兜底）
+func (s *MessageService) isMutualFriend(fromUID, toUID int64) bool {
+	// 先查 Redis 缓存
+	if cache.IsFriend(fromUID, toUID) && cache.IsFriend(toUID, fromUID) {
+		return true
+	}
+	// Redis miss（可能重启丢了），回查 MySQL
+	var count int64
+	config.Global.DB.Model(&models.UserFriend{}).
+		Where("(uid = ? AND friend_uid = ? AND is_deleted = ?) OR (uid = ? AND friend_uid = ? AND is_deleted = ?)",
+			fromUID, toUID, false, toUID, fromUID, false).
+		Count(&count)
+	if count == 2 {
+		cache.AddFriend(fromUID, toUID) // 回填缓存
+		return true
+	}
+	return false
 }
 
 // getOrCreateFriendRoom 找到或创建单聊房间（room_key 唯一，保证同一对好友只有一个房间）

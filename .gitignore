@@ -38,3 +38,6 @@
 Thumbs.db
 desktop.ini
 *.tmp
+
+# ==== 其他 ====
+/.claude/

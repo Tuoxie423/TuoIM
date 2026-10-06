@@ -51,3 +51,7 @@ func SendMessage(c *gin.Context) {
 	}
 	utils.Success(c, msg)
 }
+
+func GetRoomID(c *gin.Context) {
+
+}

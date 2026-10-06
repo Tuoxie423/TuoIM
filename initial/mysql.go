@@ -35,6 +35,8 @@ func InitMySQL() {
 		&models.RoomGroup{},
 		&models.GroupMember{},
 		&models.Message{},
+		&models.UserFriend{},
+		&models.UserApply{},
 	)
 	config.Global.DB = db
 }
