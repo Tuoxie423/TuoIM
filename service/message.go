@@ -93,3 +93,33 @@ func (s *MessageService) getOrCreateFriendRoom(uid1, uid2 int64) (int64, error) 
 	}
 	return int64(room.ID), nil
 }
+
+// GetHistory 拉取会话的历史消息（游标分页，倒序）
+func (s *MessageService) GetHistory(uid, roomID, cursor int64, limit int) ([]models.Message, bool, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	// 校验当前用户是否是该单聊房间的成员
+	var rf models.RoomFriend
+	if err := config.Global.DB.Where("room_id = ? AND (uid1 = ? OR uid2 = ?)", roomID, uid, uid).First(&rf).Error; err != nil {
+		return nil, false, errors.New("无权访问该会话")
+	}
+
+	query := config.Global.DB.Where("room_id = ?", roomID)
+	if cursor > 0 {
+		query = query.Where("id < ?", cursor) // 游标：查更早的消息
+	}
+
+	var msgs []models.Message
+	if err := query.Order("id DESC").Limit(limit + 1).Find(&msgs).Error; err != nil {
+		return nil, false, err
+	}
+
+	// 多查一条，判断是否还有更早的消息
+	hasMore := len(msgs) > limit
+	if hasMore {
+		msgs = msgs[:limit]
+	}
+	return msgs, hasMore, nil
+}

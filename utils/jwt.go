@@ -51,7 +51,7 @@ func (j *JWT) ParseAccessToken(tokenString string) (*Claims, error) {
 // parseToken 通用解析逻辑：验签 + 校验 claims，并把 jwt 错误映射成项目自己的错误
 func (j *JWT) parseToken(tokenString string, secret []byte) (*Claims, error) {
 	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		return secret, nil
 	})
 	if err != nil {

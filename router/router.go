@@ -56,6 +56,7 @@ func Router() *gin.Engine {
 	chat.Use(middleware.JWTAuth())
 	{
 		chat.POST("/send", api.SendMessage)
+		chat.GET("/history", api.GetHistory)
 	}
 
 	return r

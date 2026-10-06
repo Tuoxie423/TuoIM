@@ -146,7 +146,7 @@ func (s *FriendService) DeleteFriend(uid, friendUID int64) error {
 func (s *FriendService) GetApplyList(uid int64) ([]ApplyInfo, error) {
 	var applies []models.UserApply
 	if err := config.Global.DB.Where("target_id = ?", uid).
-		Order("create_time DESC").Find(&applies).Error; err != nil {
+		Order("created_at DESC").Find(&applies).Error; err != nil {
 		return nil, err
 	}
 	if len(applies) == 0 {

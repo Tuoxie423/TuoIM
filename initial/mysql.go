@@ -28,7 +28,7 @@ func InitMySQL() {
 	if err != nil {
 		log.Fatal("Faild to connent Mysql:", err)
 	}
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&models.UserBasic{},
 		&models.Room{},
 		&models.RoomFriend{},
@@ -37,6 +37,8 @@ func InitMySQL() {
 		&models.Message{},
 		&models.UserFriend{},
 		&models.UserApply{},
-	)
+	); err != nil {
+		log.Fatal("AutoMigrate 失败:", err)
+	}
 	config.Global.DB = db
 }

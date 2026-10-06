@@ -33,7 +33,19 @@ type AgreeReq struct {
 	ApplyUID int64 `json:"apply_uid"` // 申请人 uid
 }
 
-// SearchUser 按手机号搜索用户
+// DeleteFriendReq 删除好友请求
+type DeleteFriendReq struct {
+	FriendUID int64 `json:"friend_uid"` // 要删除的好友 uid
+}
+
+// SearchUser godoc
+// @Summary      搜索用户
+// @Tags         好友
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        phone query string true "手机号"
+// @Success      200 {object} utils.Response
+// @Router       /users/search [get]
 func SearchUser(c *gin.Context) {
 	phone := c.Query("phone")
 	if phone == "" {
@@ -48,7 +60,15 @@ func SearchUser(c *gin.Context) {
 	utils.Success(c, user)
 }
 
-// ApplyFriend 发起好友申请
+// ApplyFriend godoc
+// @Summary      发起好友申请
+// @Tags         好友
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body ApplyFriendReq true "申请参数"
+// @Success      200 {object} utils.Response
+// @Router       /friend/apply [post]
 func ApplyFriend(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -67,7 +87,15 @@ func ApplyFriend(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// AgreeFriend 同意好友申请
+// AgreeFriend godoc
+// @Summary      同意好友申请
+// @Tags         好友
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body AgreeReq true "申请人 uid"
+// @Success      200 {object} utils.Response
+// @Router       /friend/agree [post]
 func AgreeFriend(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -86,7 +114,15 @@ func AgreeFriend(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// RejectFriend 拒绝好友申请
+// RejectFriend godoc
+// @Summary      拒绝好友申请
+// @Tags         好友
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body AgreeReq true "申请人 uid"
+// @Success      200 {object} utils.Response
+// @Router       /friend/reject [post]
 func RejectFriend(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -105,7 +141,13 @@ func RejectFriend(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// GetApplyList 好友申请列表
+// GetApplyList godoc
+// @Summary      好友申请列表
+// @Tags         好友
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Success      200 {object} utils.Response
+// @Router       /friend/applyList [get]
 func GetApplyList(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -120,7 +162,13 @@ func GetApplyList(c *gin.Context) {
 	utils.Success(c, list)
 }
 
-// GetFriendList 好友列表
+// GetFriendList godoc
+// @Summary      好友列表
+// @Tags         好友
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Success      200 {object} utils.Response
+// @Router       /friend/list [get]
 func GetFriendList(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -135,7 +183,13 @@ func GetFriendList(c *gin.Context) {
 	utils.Success(c, list)
 }
 
-// UnreadApplyNum 未读申请数
+// UnreadApplyNum godoc
+// @Summary      未读申请数
+// @Tags         好友
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Success      200 {object} utils.Response
+// @Router       /friend/unreadNum [get]
 func UnreadApplyNum(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
@@ -150,12 +204,15 @@ func UnreadApplyNum(c *gin.Context) {
 	utils.Success(c, num)
 }
 
-// DeleteFriendReq 删除好友请求
-type DeleteFriendReq struct {
-	FriendUID int64 `json:"friend_uid"` // 要删除的好友 uid
-}
-
-// DeleteFriend 删除好友
+// DeleteFriend godoc
+// @Summary      删除好友
+// @Tags         好友
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body DeleteFriendReq true "好友 uid"
+// @Success      200 {object} utils.Response
+// @Router       /friend/delete [delete]
 func DeleteFriend(c *gin.Context) {
 	uid, ok := getCurrentUID(c)
 	if !ok {
