@@ -16,6 +16,10 @@ func Router() *gin.Engine {
 	r.Use(initial.Logger.Logger()) // 使用自定义日志中间件
 	r.Use(gin.Recovery())
 	r.Use(middleware.CORS())
+
+	// 静态文件：上传的图片（公开访问）
+	r.Static("/upload", "./upload")
+
 	// 公开接口
 	publicGroup := r.Group("/api")
 	{
@@ -65,6 +69,27 @@ func Router() *gin.Engine {
 	room.Use(middleware.JWTAuth())
 	{
 		room.POST("/get_or_create", api.GetOrCreateRoom)
+	}
+
+	// 群聊（受保护）
+	group := publicGroup.Group("/group")
+	group.Use(middleware.JWTAuth())
+	{
+		group.POST("/create", api.CreateGroup)
+		group.POST("/send", api.SendGroupMsg)
+		group.POST("/add", api.AddGroupMember)
+		group.POST("/remove", api.RemoveGroupMember)
+		group.POST("/quit", api.QuitGroup)
+		group.POST("/update", api.UpdateGroup)
+		group.GET("/members", api.GetGroupMemberList)
+		group.GET("/list", api.GetMyGroups)
+	}
+
+	// 文件（受保护）
+	file := publicGroup.Group("/file")
+	file.Use(middleware.JWTAuth())
+	{
+		file.POST("/upload", api.Upload)
 	}
 
 	return r

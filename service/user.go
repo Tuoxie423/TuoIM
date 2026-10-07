@@ -16,6 +16,9 @@ func (s *UserService) Register(name, password, phone string) (*models.UserBasic,
 	if name == "" || password == "" {
 		return nil, errors.New("用户名和密码不能为空")
 	}
+	if len(password) < 6 {
+		return nil, errors.New("密码长度不能少于6位")
+	}
 	if phone == "" {
 		return nil, errors.New("手机号不能为空")
 	}
@@ -45,13 +48,14 @@ func (s *UserService) Register(name, password, phone string) (*models.UserBasic,
 }
 
 // Login 用户登录（手机号 + 密码）
+// 用户不存在和密码错误统一返回，避免手机号枚举
 func (s *UserService) Login(phone, password string) (*models.UserBasic, error) {
 	var user models.UserBasic
 	if err := config.Global.DB.Where("phone = ?", phone).First(&user).Error; err != nil {
-		return nil, errors.New("用户不存在")
+		return nil, errors.New("用户名或密码错误")
 	}
 	if !utils.CheckPasswordHash(password, user.PassWord) {
-		return nil, errors.New("密码错误")
+		return nil, errors.New("用户名或密码错误")
 	}
 	return &user, nil
 }

@@ -12,15 +12,16 @@ import (
 	"ginchat/ws"
 )
 
-// messageTask 消息任务（消息 + 接收者）
+// messageTask 消息任务（消息 + 接收者列表）
 type messageTask struct {
-	Msg      models.Message
-	ToUserID int64
+	Msg       models.Message
+	ToUserIDs []int64 // 接收者列表（单聊 1 人，群聊 N 人）
 }
 
 var (
 	msgCh     = make(chan messageTask, 1024)    // 消息主管道
 	persistCh = make(chan models.Message, 1024) // 落库管道
+	stopCh    = make(chan struct{})             // 优雅关闭信号（通知 retrier 退出）
 	wg        sync.WaitGroup
 )
 
@@ -34,7 +35,8 @@ func StartMessageQueue() {
 
 // StopMessageQueue 优雅关闭：停止接收新消息，等管道清空
 func StopMessageQueue() {
-	close(msgCh)
+	close(msgCh)  // 停止接收新消息，dispatcher 清空后关闭 persistCh
+	close(stopCh) // 通知 retrier 退出
 	wg.Wait()
 }
 
@@ -43,12 +45,15 @@ func dispatcher() {
 	defer wg.Done()
 	for task := range msgCh {
 		msgJSON, _ := json.Marshal(task.Msg)
-		if cache.IsOnline(task.ToUserID) {
-			log.Printf("[MQ] 在线推送: from=%d to=%d", task.Msg.FromUserID, task.ToUserID)
-			ws.DefaultHub.Push(task.ToUserID, msgJSON) // 在线：WebSocket 推
-		} else {
-			log.Printf("[MQ] 离线存队列: from=%d to=%d", task.Msg.FromUserID, task.ToUserID)
-			cache.SaveOfflineMsg(task.ToUserID, msgJSON) // 不在线：存离线队列
+		for _, uid := range task.ToUserIDs {
+			if uid == task.Msg.FromUserID {
+				continue // 排除发送者自己
+			}
+			if cache.IsOnline(uid) {
+				ws.DefaultHub.Push(uid, msgJSON) // 在线：WebSocket 推
+			} else {
+				cache.SaveOfflineMsg(uid, msgJSON) // 不在线：存离线队列
+			}
 		}
 		persistCh <- task.Msg
 	}
@@ -94,25 +99,35 @@ func flushBatch(batch []models.Message) {
 	}
 }
 
-// retrier 重试器：定时重试死信队列里的消息
+// retrier 重试器：定时重试死信队列里的消息，收到停止信号后退出
 func retrier() {
 	defer wg.Done()
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		for _, data := range cache.GetFailMsg() {
-			var msg models.Message
-			if err := json.Unmarshal([]byte(data), &msg); err != nil {
-				log.Printf("[MQ] 死信消息反序列化失败: err=%v", err)
-				continue
-			}
-			if err := config.Global.DB.Create(&msg).Error; err == nil {
-				cache.RemoveFailMsg(data) // 成功 → 删除
-			} else {
-				log.Printf("[MQ] 死信重试失败: err=%v", err)
-				// 失败 → 留着，下次再试
-			}
+	for {
+		select {
+		case <-ticker.C:
+			retryFailMsg()
+		case <-stopCh:
+			return
+		}
+	}
+}
+
+// retryFailMsg 拉取死信队列并逐条重试，失败则留在队列下次再试
+func retryFailMsg() {
+	for _, data := range cache.GetFailMsg() {
+		var msg models.Message
+		if err := json.Unmarshal([]byte(data), &msg); err != nil {
+			log.Printf("[MQ] 死信消息反序列化失败: err=%v", err)
+			continue
+		}
+		if err := config.Global.DB.Create(&msg).Error; err == nil {
+			cache.RemoveFailMsg(data) // 成功 → 删除
+		} else {
+			log.Printf("[MQ] 死信重试失败: err=%v", err)
+			// 失败 → 留着，下次再试
 		}
 	}
 }

@@ -35,6 +35,5 @@ func InitLogger() {
 		w = os.Stdout
 	}
 
-	// TODO: 若要支持 json 格式，可在 config.Log 里加回 Format 字段后再传 true
 	Logger = middleware.NewAsyncLogger(w, 1024, config.Global.Log.FormatJson)
 }

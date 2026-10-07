@@ -82,7 +82,7 @@ func Login(c *gin.Context) {
 // @Produce      json
 // @Param        Authorization header string true "Bearer token"
 // @Success      200 {object} utils.Response
-// @Router       /users/me [get]
+// @Router       /users/info [get]
 func GetUserInfo(c *gin.Context) {
 	// 从 context 取出中间件存的 claims
 	claimsAny, ok := c.Get("claims")

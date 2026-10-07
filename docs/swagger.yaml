@@ -1,11 +1,65 @@
 basePath: /api
 definitions:
+  api.AgreeReq:
+    properties:
+      apply_uid:
+        description: 申请人 uid
+        type: integer
+    type: object
+  api.ApplyFriendReq:
+    properties:
+      msg:
+        type: string
+      to_user_id:
+        type: integer
+    type: object
+  api.CreateGroupReq:
+    properties:
+      member_uids:
+        description: 初始成员（可选）
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+    type: object
+  api.DeleteFriendReq:
+    properties:
+      friend_uid:
+        description: 要删除的好友 uid
+        type: integer
+    type: object
+  api.GetOrCreateRoomReq:
+    properties:
+      to_user_id:
+        description: 对方用户 id
+        type: integer
+    type: object
   api.LoginRequest:
     properties:
       password:
         type: string
       phone:
         type: string
+    type: object
+  api.MemberReq:
+    properties:
+      room_id:
+        type: integer
+      target_uid:
+        type: integer
+    type: object
+  api.MessageReq:
+    properties:
+      content:
+        description: 消息内容
+        type: string
+      to_user_id:
+        description: 接收者用户 id
+        type: integer
+      type:
+        description: 消息类型 1文本 2图片...
+        type: integer
     type: object
   api.RegisterRequest:
     properties:
@@ -15,6 +69,33 @@ definitions:
         type: string
       phone:
         type: string
+    type: object
+  api.SendGroupMsgReq:
+    properties:
+      content:
+        type: string
+      room_id:
+        type: integer
+      type:
+        type: integer
+    type: object
+  api.UpdateGroupReq:
+    properties:
+      avatar:
+        type: string
+      name:
+        type: string
+      room_id:
+        type: integer
+    type: object
+  api.UpdateUserReq:
+    properties:
+      avatar:
+        type: string
+      name:
+        type: string
+      sex:
+        type: integer
     type: object
   utils.Response:
     properties:
@@ -29,9 +110,446 @@ host: localhost:8080
 info:
   contact: {}
   description: 即时通讯服务接口文档
-  title: GinIM API
+  title: TuoIM API
   version: "1.0"
 paths:
+  /chat/history:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 会话 id
+        in: query
+        name: room_id
+        required: true
+        type: integer
+      - description: 游标（上一页最后一条消息 id）
+        in: query
+        name: cursor
+        type: integer
+      - description: 条数，默认20
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 消息历史
+      tags:
+      - 消息
+  /chat/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 消息参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.MessageReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 发送消息
+      tags:
+      - 消息
+  /file/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 图片文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 上传图片
+      tags:
+      - 文件
+  /friend/agree:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 申请人 uid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.AgreeReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 同意好友申请
+      tags:
+      - 好友
+  /friend/apply:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 申请参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.ApplyFriendReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 发起好友申请
+      tags:
+      - 好友
+  /friend/applyList:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 好友申请列表
+      tags:
+      - 好友
+  /friend/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 好友 uid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.DeleteFriendReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 删除好友
+      tags:
+      - 好友
+  /friend/list:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 好友列表
+      tags:
+      - 好友
+  /friend/reject:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 申请人 uid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.AgreeReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 拒绝好友申请
+      tags:
+      - 好友
+  /friend/unreadNum:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 未读申请数
+      tags:
+      - 好友
+  /group/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 成员参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.MemberReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 添加群成员
+      tags:
+      - 群聊
+  /group/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 建群参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateGroupReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建群聊
+      tags:
+      - 群聊
+  /group/list:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 我的群列表
+      tags:
+      - 群聊
+  /group/members:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 群会话 id
+        in: query
+        name: room_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 群成员列表
+      tags:
+      - 群聊
+  /group/quit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 群会话 room_id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.MemberReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 退出群聊
+      tags:
+      - 群聊
+  /group/remove:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 成员参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.MemberReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 移除群成员
+      tags:
+      - 群聊
+  /group/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 群消息参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.SendGroupMsgReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 发送群消息
+      tags:
+      - 群聊
+  /group/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 群信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateGroupReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 更新群信息
+      tags:
+      - 群聊
   /index:
     get:
       description: 欢迎页
@@ -89,7 +607,33 @@ paths:
       summary: 用户注册
       tags:
       - 用户
-  /users/me:
+  /room/get_or_create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 对方用户 id
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.GetOrCreateRoomReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取或创建单聊房间
+      tags:
+      - 消息
+  /users/info:
     get:
       description: 通过 token 解析出 userID 并返回用户信息
       parameters:
@@ -108,4 +652,52 @@ paths:
       summary: 获取当前登录用户信息
       tags:
       - 用户
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 更新参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 更新用户资料
+      tags:
+      - 用户
+  /users/search:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 手机号
+        in: query
+        name: phone
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 搜索用户
+      tags:
+      - 好友
 swagger: "2.0"

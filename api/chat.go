@@ -53,9 +53,9 @@ func SendMessage(c *gin.Context) {
 // @Tags         消息
 // @Produce      json
 // @Param        Authorization header string true "Bearer token"
-// @Param        room_id query string true "会话 id"
-// @Param        cursor query string false "游标（上一页最后一条消息 id）"
-// @Param        limit query string false "条数，默认20"
+// @Param        room_id query integer true "会话 id"
+// @Param        cursor query integer false "游标（上一页最后一条消息 id）"
+// @Param        limit query integer false "条数，默认20"
 // @Success      200 {object} utils.Response
 // @Router       /chat/history [get]
 func GetHistory(c *gin.Context) {

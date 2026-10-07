@@ -49,7 +49,6 @@ type Timeout struct {
 // Port 端口配置
 type Port struct {
 	Server string `mapstructure:"server"`
-	UDP    int    `mapstructure:"udp"`
 }
 
 // Log 日志配置

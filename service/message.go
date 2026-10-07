@@ -36,7 +36,7 @@ func (s *MessageService) SendMsg(fromUserID, toUserID int64, content string, msg
 		Type:       msgType,
 	}
 	msg.CreatedAt = time.Now() // 手动带时间：异步推送时也要有发送时间
-	msgCh <- messageTask{Msg: msg, ToUserID: toUserID}
+	msgCh <- messageTask{Msg: msg, ToUserIDs: []int64{toUserID}}
 	return &msg, nil
 }
 
@@ -100,10 +100,21 @@ func (s *MessageService) GetHistory(uid, roomID, cursor int64, limit int) ([]mod
 		limit = 20
 	}
 
-	// 校验当前用户是否是该单聊房间的成员
-	var rf models.RoomFriend
-	if err := config.Global.DB.Where("room_id = ? AND (uid1 = ? OR uid2 = ?)", roomID, uid, uid).First(&rf).Error; err != nil {
-		return nil, false, errors.New("无权访问该会话")
+	// 权限校验：单聊查 room_friend，群聊查 group_member
+	var room models.Room
+	if err := config.Global.DB.First(&room, roomID).Error; err != nil {
+		return nil, false, errors.New("会话不存在")
+	}
+	if room.Type == 1 { // 群聊
+		var member models.GroupMember
+		if err := config.Global.DB.Where("group_id = ? AND uid = ?", roomID, uid).First(&member).Error; err != nil {
+			return nil, false, errors.New("无权访问该会话")
+		}
+	} else { // 单聊
+		var rf models.RoomFriend
+		if err := config.Global.DB.Where("room_id = ? AND (uid1 = ? OR uid2 = ?)", roomID, uid, uid).First(&rf).Error; err != nil {
+			return nil, false, errors.New("无权访问该会话")
+		}
 	}
 
 	query := config.Global.DB.Where("room_id = ?", roomID)

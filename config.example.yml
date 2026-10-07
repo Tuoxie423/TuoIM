@@ -22,7 +22,6 @@ timeout:
 
 port:
   server: ":8080"
-  udp: 3001
 
 log:
   output: "both"        # stdout(终端) / file(文件) / both
