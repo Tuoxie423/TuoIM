@@ -104,3 +104,37 @@ func GetUserInfo(c *gin.Context) {
 	}
 	utils.Success(c, user)
 }
+
+// UpdateUserReq 更新用户资料请求
+type UpdateUserReq struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+	Sex    int32  `json:"sex"`
+}
+
+// UpdateUserInfo godoc
+// @Summary      更新用户资料
+// @Tags         用户
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body UpdateUserReq true "更新参数"
+// @Success      200 {object} utils.Response
+// @Router       /users/info [put]
+func UpdateUserInfo(c *gin.Context) {
+	uid, ok := getCurrentUID(c)
+	if !ok {
+		utils.Error(c, utils.CodeUnauthorized, "未登录")
+		return
+	}
+	var req UpdateUserReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	if err := userService.UpdateUser(uid, req.Name, req.Avatar, req.Sex); err != nil {
+		utils.Error(c, 400, err.Error())
+		return
+	}
+	utils.SuccessWithMsg(c, "资料已更新")
+}

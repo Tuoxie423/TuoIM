@@ -84,7 +84,7 @@ func ApplyFriend(c *gin.Context) {
 		utils.Error(c, 400, err.Error())
 		return
 	}
-	utils.Success(c, nil)
+	utils.SuccessWithMsg(c, "好友申请已发送")
 }
 
 // AgreeFriend godoc

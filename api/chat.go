@@ -79,3 +79,36 @@ func GetHistory(c *gin.Context) {
 	}
 	utils.Success(c, gin.H{"list": list, "has_more": hasMore})
 }
+
+// GetOrCreateRoomReq 获取/创建房间请求
+type GetOrCreateRoomReq struct {
+	ToUserID int64 `json:"to_user_id"` // 对方用户 id
+}
+
+// GetOrCreateRoom godoc
+// @Summary      获取或创建单聊房间
+// @Tags         消息
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Param        body body GetOrCreateRoomReq true "对方用户 id"
+// @Success      200 {object} utils.Response
+// @Router       /room/get_or_create [post]
+func GetOrCreateRoom(c *gin.Context) {
+	uid, ok := getCurrentUID(c)
+	if !ok {
+		utils.Error(c, utils.CodeUnauthorized, "未登录")
+		return
+	}
+	var req GetOrCreateRoomReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	roomID, err := messageService.GetOrCreateFriendRoom(uid, req.ToUserID)
+	if err != nil {
+		utils.Error(c, 500, err.Error())
+		return
+	}
+	utils.Success(c, gin.H{"room_id": roomID})
+}

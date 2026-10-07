@@ -26,6 +26,7 @@ type FriendInfo struct {
 	UID    int64  `json:"uid"`
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
+	Online bool   `json:"online"` // 是否在线
 }
 
 // SearchUser 按手机号搜索用户
@@ -213,7 +214,7 @@ func (s *FriendService) GetFriendList(uid int64) ([]FriendInfo, error) {
 
 	result := make([]FriendInfo, 0, len(friends))
 	for _, f := range friends {
-		info := FriendInfo{UID: f.FriendUID}
+		info := FriendInfo{UID: f.FriendUID, Online: cache.IsOnline(f.FriendUID)}
 		if u, ok := userMap[f.FriendUID]; ok {
 			info.Name = u.Name
 			info.Avatar = u.Avatar

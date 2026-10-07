@@ -64,3 +64,21 @@ func (s *UserService) GetUserByID(id int64) (*models.UserBasic, error) {
 	}
 	return &user, nil
 }
+
+// UpdateUser 更新用户资料（昵称/头像/性别）
+func (s *UserService) UpdateUser(id int64, name, avatar string, sex int32) error {
+	updates := map[string]any{}
+	if name != "" {
+		updates["name"] = name
+	}
+	if avatar != "" {
+		updates["avatar"] = avatar
+	}
+	if sex != 0 {
+		updates["sex"] = sex
+	}
+	if len(updates) == 0 {
+		return errors.New("没有要更新的字段")
+	}
+	return config.Global.DB.Model(&models.UserBasic{}).Where("id = ?", id).Updates(updates).Error
+}

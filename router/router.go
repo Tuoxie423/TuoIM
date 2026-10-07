@@ -35,6 +35,7 @@ func Router() *gin.Engine {
 	users.Use(middleware.JWTAuth())
 	{
 		users.GET("/info", api.GetUserInfo)
+		users.PUT("/info", api.UpdateUserInfo)
 		users.GET("/search", api.SearchUser)
 	}
 
@@ -57,6 +58,13 @@ func Router() *gin.Engine {
 	{
 		chat.POST("/send", api.SendMessage)
 		chat.GET("/history", api.GetHistory)
+	}
+
+	// 房间（受保护）
+	room := publicGroup.Group("/room")
+	room.Use(middleware.JWTAuth())
+	{
+		room.POST("/get_or_create", api.GetOrCreateRoom)
 	}
 
 	return r

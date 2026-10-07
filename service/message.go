@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"ginchat/cache"
 	"ginchat/config"
@@ -22,21 +23,20 @@ func (s *MessageService) SendMsg(fromUserID, toUserID int64, content string, msg
 	}
 
 	// ② 找到/创建单聊房间
-	roomID, err := s.getOrCreateFriendRoom(fromUserID, toUserID)
+	roomID, err := s.GetOrCreateFriendRoom(fromUserID, toUserID)
 	if err != nil {
 		return nil, err
 	}
 
-	// ③ 落库
+	// ③ 入管道（异步：推送 + 攒批落库）
 	msg := models.Message{
 		RoomID:     roomID,
 		FromUserID: fromUserID,
 		Content:    content,
 		Type:       msgType,
 	}
-	if err := config.Global.DB.Create(&msg).Error; err != nil {
-		return nil, err
-	}
+	msg.CreatedAt = time.Now() // 手动带时间：异步推送时也要有发送时间
+	msgCh <- messageTask{Msg: msg, ToUserID: toUserID}
 	return &msg, nil
 }
 
@@ -59,8 +59,8 @@ func (s *MessageService) isMutualFriend(fromUID, toUID int64) bool {
 	return false
 }
 
-// getOrCreateFriendRoom 找到或创建单聊房间（room_key 唯一，保证同一对好友只有一个房间）
-func (s *MessageService) getOrCreateFriendRoom(uid1, uid2 int64) (int64, error) {
+// GetOrCreateFriendRoom 找到或创建单聊房间（room_key 唯一，保证同一对好友只有一个房间）
+func (s *MessageService) GetOrCreateFriendRoom(uid1, uid2 int64) (int64, error) {
 	// 排序，小的在前，保证 room_key 一致
 	a, b := uid1, uid2
 	if a > b {

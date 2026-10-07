@@ -61,7 +61,7 @@ type Log struct {
 
 // Jwt JWT配置
 type Jwt struct {
-	AccessTokenSecret string `mapstructure:"accessKey"`
+	AccessTokenSecret string `mapstructure:"accessSecret"`
 	AccessExpireTime  int    `mapstructure:"accessExpire"`
 }
 

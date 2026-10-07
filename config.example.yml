@@ -14,12 +14,6 @@ redis:
   poolSize: 30
   minIdleConn: 30
 
-oss:
-  Endpoint: "xxxxxxxxxxxxxxxxxxxx"
-  AccessKeyId: "xxxxxxxxxxxxxxx"
-  AccessKeySecret: "xxxxxxxxxxxxxxxxx"
-  Bucket: "ginchat"
-
 timeout:
   DelayHeartbeat: 3      # 延迟心跳时间 单位秒
   HeartbeatHz: 30        # 每隔多少秒心跳
@@ -36,5 +30,5 @@ log:
   format_json: True
 
 jwt:
-  accessKey: "your_access_secret"
+  accessSecret: "your_access_secret"
   accessExpire: 3600
